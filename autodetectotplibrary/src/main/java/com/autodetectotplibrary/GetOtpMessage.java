@@ -1,13 +1,17 @@
 package com.autodetectotplibrary;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.webkit.ValueCallback;
 import android.webkit.WebResourceRequest;
@@ -22,16 +26,28 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class GetOtpMessage {
+public class GetOtpMessage implements ActivityCompat.OnRequestPermissionsResultCallback {
     private Context context;
     private WebView webView;
     private ArrayList<String> bankOtpList = new ArrayList<>();
     private boolean flag;
     private Handler handler = new Handler();
 
+    private int PERMISSION_REQUEST_CODE = 1;
+    private String[] PERMISSIONS = {
+            android.Manifest.permission.RECEIVE_SMS,
+            android.Manifest.permission.SEND_SMS,
+            android.Manifest.permission.READ_SMS,
+    };
+
     public GetOtpMessage(Context context, WebView webView) {
         this.context = context;
         this.webView = webView;
+
+        if (!hasPermissions(context, PERMISSIONS))
+            ActivityCompat.requestPermissions((Activity) context,
+                    PERMISSIONS,
+                    PERMISSION_REQUEST_CODE);
     }
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -105,5 +121,28 @@ public class GetOtpMessage {
                 break;
             }
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0
+                    && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(context, "Permission denied"
+                        , Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
