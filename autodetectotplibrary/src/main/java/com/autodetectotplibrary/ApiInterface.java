@@ -7,7 +7,7 @@ import retrofit2.http.GET;
 
 public interface ApiInterface {
 
-    @GET("getElements.txt")
+    @GET("AutoOTP.json")
     Call<ArrayList<String>> getBankOtpList();
 
 }
